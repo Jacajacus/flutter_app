@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() {
   runApp(MyApp());
@@ -47,6 +51,11 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  FirebaseUser _user;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final databaseReference = Firestore.instance;
 
   void _incrementCounter() {
     setState(() {
@@ -57,6 +66,25 @@ class _MyHomePageState extends State<MyHomePage> {
       // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  void _loginWithGoogle() async {
+    final GoogleSignInAccount googleUser =  await _googleSignIn.signIn();
+    final GoogleSignInAuthentication googleAuth=
+    await googleUser.authentication;
+    final AuthCredential credential =GoogleAuthProvider.getCredential (
+      accessToken: googleAuth.accessToken,
+      idToken: googleAuth.idToken,
+    );
+
+    final FirebaseUser user = (await _auth.signInWithCredential(credential)).user;
+    print("signed in " + user.displayName);
+
+    setState((){
+      _user = user;
+      _counter = 1000;
+    });
+
   }
 
   @override
